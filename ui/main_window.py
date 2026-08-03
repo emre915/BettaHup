@@ -1,22 +1,31 @@
-import tkinter as tk
-from ui.sidebar import Sidebar
+"""
+BettaHub
+Ana Pencere
+"""
 
-class MainWindow:
+import customtkinter as ctk
+
+from ui.sidebar import Sidebar
+from ui.dashboard import Dashboard
+
+
+class MainWindow(ctk.CTk):
 
     def __init__(self):
+        super().__init__()
 
-        self.root = tk.Tk()
+        # Pencere Ayarları
+        self.title("BettaHub")
+        self.geometry("1400x850")
+        self.minsize(1200, 700)
 
-        self.root.title("BettaHub")
+        # Arka Plan
+        self.configure(fg_color="#1E1E1E")
 
-        self.root.geometry("1400x850")
-
-        self.root.minsize(1200, 700)
-
-        self.root.configure(bg="#0f172a")
-        self.sidebar = Sidebar(self.root)
+        # Sol Menü
+        self.sidebar = Sidebar(self)
         self.sidebar.pack(side="left", fill="y")
 
-    def run(self):
-
-        self.root.mainloop()
+        # Dashboard
+        self.dashboard = Dashboard(self)
+        self.dashboard.pack(side="right", fill="both", expand=True)

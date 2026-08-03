@@ -1,14 +1,19 @@
-import tkinter as tk
+"""
+BettaHub
+Sol Menü (Sidebar)
+"""
+
+import customtkinter as ctk
 
 
-class Sidebar(tk.Frame):
+class Sidebar(ctk.CTkFrame):
 
     def __init__(self, parent):
-        super().__init__(parent)
-
-        self.configure(
+        super().__init__(
+            parent,
             width=250,
-            bg="#202020"
+            corner_radius=0,
+            fg_color="#252526"
         )
 
         self.pack_propagate(False)
@@ -16,21 +21,20 @@ class Sidebar(tk.Frame):
         # =========================
         # Logo
         # =========================
-        title = tk.Label(
+
+        title = ctk.CTkLabel(
             self,
-            text="BETTAHUB",
-            font=("Bahnschrift SemiBold", 22),
-            bg="#202020",
-            fg="#00D4FF"
+            text="🐠 BETTAHUB",
+            font=("Bahnschrift SemiBold", 24),
+            text_color="white"
         )
         title.pack(pady=(25, 5))
 
-        subtitle = tk.Label(
+        subtitle = ctk.CTkLabel(
             self,
             text="Professional Breeding Manager",
-            font=("Bahnschrift", 9),
-            bg="#202020",
-            fg="#A0A0A0"
+            font=("Bahnschrift", 11),
+            text_color="#A0A0A0"
         )
         subtitle.pack(pady=(0, 30))
 
@@ -40,36 +44,36 @@ class Sidebar(tk.Frame):
 
         self.create_button("🏠  Ana Sayfa")
         self.create_button("🐠  Balıklar")
-        self.create_button("🏥  Sağlık")
+        self.create_button("❤️  Sağlık")
         self.create_button("🧬  Üretim")
         self.create_button("🐣  Yavrular")
         self.create_button("🏢  Akvaryumlar")
-        self.create_button("📅  Takvim")
         self.create_button("📊  Raporlar")
-        self.create_button("💬  Sohbet")
-        self.create_button("📷  Galeri")
         self.create_button("⚙️  Ayarlar")
+
+        # Alt boşluk
+        ctk.CTkLabel(self, text="").pack(expand=True)
+
+        version = ctk.CTkLabel(
+            self,
+            text="BettaHub v0.2",
+            font=("Bahnschrift", 11),
+            text_color="#707070"
+        )
+        version.pack(pady=20)
 
     def create_button(self, text):
 
-        button = tk.Button(
+        button = ctk.CTkButton(
             self,
             text=text,
-            font=("Bahnschrift", 11),
-            bg="#2B2B2B",
-            fg="white",
-            activebackground="#00AEEF",
-            activeforeground="white",
-            relief="flat",
-            bd=0,
+            height=45,
+            corner_radius=8,
+            font=("Bahnschrift", 15),
             anchor="w",
-            padx=20,
-            cursor="hand2",
-            height=2
+            fg_color="transparent",
+            hover_color="#3A3A3A",
+            text_color="white"
         )
 
-        button.pack(
-            fill="x",
-            padx=10,
-            pady=3
-        )
+        button.pack(fill="x", padx=15, pady=4)
