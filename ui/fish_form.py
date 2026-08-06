@@ -23,7 +23,7 @@ from ui.widgets import (
 
 class FishForm(ctk.CTkToplevel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, fish=None):
         super().__init__(parent)
 
         # ==========================
@@ -42,6 +42,8 @@ class FishForm(ctk.CTkToplevel):
         # ==========================
 
         self.fish_service = FishService()
+                # Düzenleme modu
+        self.fish = fish
 
         # ==========================
         # Başlık
@@ -131,6 +133,9 @@ class FishForm(ctk.CTkToplevel):
         # ==========================
 
         self.notes_tab = NotesTab(notes_page)
+                # Eğer düzenleme modundaysak
+        if self.fish:
+            self.load_fish_data()
         self.notes_tab.pack(
             fill="both",
             expand=True

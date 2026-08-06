@@ -74,6 +74,20 @@ class FishService:
     # ==========================================
 
     def get_all_fish(self):
+        # ==========================================
+        # Tek Balık Getir
+        # ==========================================
+
+     def get_fish(self, fish_id):
+
+        return self.db.fetchone(
+            """
+            SELECT *
+            FROM fish
+            WHERE id=?
+            """,
+            (fish_id,)
+        )
 
         return self.db.fetchall(
             """
@@ -86,7 +100,38 @@ class FishService:
     # ==========================================
     # Balık Sil
     # ==========================================
+    # ==========================================
+    # Balık Güncelle
+    # ==========================================
 
+    def update_fish(self, fish_id, data):
+
+        self.db.execute(
+            """
+            UPDATE fish
+            SET
+                name=?,
+                species=?,
+                variety=?,
+                gender=?,
+                color=?,
+                birth_date=?,
+                aquarium=?,
+                section=?
+            WHERE id=?
+            """,
+            (
+                data["name"],
+                data["species"],
+                data["variety"],
+                data["gender"],
+                data["color"],
+                data["birth_date"],
+                data["aquarium"],
+                data["section"],
+                fish_id
+            )
+        )
     def delete_fish(self, fish_id):
 
         self.db.execute(
