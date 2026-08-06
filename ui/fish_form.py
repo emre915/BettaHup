@@ -195,8 +195,10 @@ class FishForm(ctk.CTkToplevel):
                 "Başarılı",
                 f"Balık başarıyla kaydedildi.\n\nKod: {fish_code}"
             )
-
+            if hasattr(self.master, "refresh"):
+             self.master.refresh()
             self.destroy()
+
 
         except Exception as e:
 
