@@ -4,6 +4,7 @@ Balık Yönetimi Sayfası
 """
 
 import customtkinter as ctk
+from tkinter import messagebox
 
 from services.fish_service import FishService
 from ui.fish_form import FishForm
@@ -69,7 +70,9 @@ class FishPage(ctk.CTkFrame):
         # Arama Alanı
         # ==========================
 
-        search_frame = ctk.CTkFrame(self)
+        search_frame = ctk.CTkFrame(
+            self
+        )
 
         search_frame.pack(
             fill="x",
@@ -90,10 +93,12 @@ class FishPage(ctk.CTkFrame):
         )
 
         # ==========================
-        # Tablo Alanı
+        # Tablo
         # ==========================
 
-        self.table_frame = ctk.CTkScrollableFrame(self)
+        self.table_frame = ctk.CTkScrollableFrame(
+            self
+        )
 
         self.table_frame.pack(
             fill="both",
@@ -101,8 +106,9 @@ class FishPage(ctk.CTkFrame):
             padx=20,
             pady=(0, 20)
         )
-                # ==========================
-        # Tablo Başlıkları
+
+        # ==========================
+        # Kolonlar
         # ==========================
 
         self.columns = [
@@ -116,15 +122,15 @@ class FishPage(ctk.CTkFrame):
             "İşlem"
         ]
 
-        for col, title in enumerate(self.columns):
+        for col, title_text in enumerate(self.columns):
 
-            header = ctk.CTkLabel(
+            header_label = ctk.CTkLabel(
                 self.table_frame,
-                text=title,
+                text=title_text,
                 font=("Bahnschrift SemiBold", 14)
             )
 
-            header.grid(
+            header_label.grid(
                 row=0,
                 column=col,
                 padx=10,
@@ -132,31 +138,35 @@ class FishPage(ctk.CTkFrame):
                 sticky="w"
             )
 
-        # Kolonların genişleyebilmesi için
+        # Kolonların genişlemesi
+
         for i in range(len(self.columns)):
+
             self.table_frame.grid_columnconfigure(
                 i,
                 weight=1
             )
 
+        # ==========================
         # İlk yükleme
+        # ==========================
+
         self.load_fish()
-            # ======================================
-    # Formu Aç
-    # ======================================
+
+    # ==================================================
+    # YENİ BALIK
+    # ==================================================
 
     def open_fish_form(self):
 
-        FishForm(self)
-
-        self.after(
-            300,
-            self.load_fish
+        FishForm(
+            self,
+            fish=None
         )
 
-    # ======================================
-    # Tabloyu Temizle
-    # ======================================
+    # ==================================================
+    # TABLOYU TEMİZLE
+    # ==================================================
 
     def clear_table(self):
 
@@ -164,30 +174,43 @@ class FishPage(ctk.CTkFrame):
 
             info = widget.grid_info()
 
-            if int(info["row"]) > 0:
-                widget.destroy()
-                    # ======================================
-    # Balıkları Yükle
-    # ======================================
-        print("load_fish çalıştı")
+            if info:
+
+                row = int(info["row"])
+
+                if row > 0:
+                    widget.destroy()
+
+    # ==================================================
+    # BALIKLARI YÜKLE
+    # ==================================================
+
     def load_fish(self):
 
-        # Eski satırları temizle
+        print("load_fish çalıştı")
+
         self.clear_table()
 
         try:
 
             fish_list = self.fish_service.get_all_fish()
-            print("Balık sayısı:", len(fish_list))
+
+            print(
+                "Balık sayısı:",
+                len(fish_list)
+            )
 
             for fish in fish_list:
-             print(dict(fish))
+
+                print(
+                    dict(fish)
+                )
 
         except Exception as e:
 
             error = ctk.CTkLabel(
                 self.table_frame,
-                text=f"Hata : {e}",
+                text=f"Hata: {e}",
                 text_color="red"
             )
 
@@ -200,7 +223,10 @@ class FishPage(ctk.CTkFrame):
 
             return
 
-        # Hiç kayıt yoksa
+        # ==================================================
+        # KAYIT YOK
+        # ==================================================
+
         if not fish_list:
 
             empty = ctk.CTkLabel(
@@ -218,35 +244,38 @@ class FishPage(ctk.CTkFrame):
 
             return
 
-        # ==========================
-        # Satırları oluştur
-        # ==========================
+        # ==================================================
+        # SATIRLAR
+        # ==================================================
 
-        for row, fish in enumerate(fish_list, start=1):
+        for row, fish in enumerate(
+            fish_list,
+            start=1
+        ):
 
             values = [
-
                 fish["fish_code"],
-
                 fish["name"],
-
                 fish["species"],
-
                 fish["variety"],
-
                 fish["gender"],
-
                 fish["aquarium"],
-
                 fish["section"]
-
             ]
+
+            # ------------------------------
+            # Bilgiler
+            # ------------------------------
 
             for col, value in enumerate(values):
 
                 lbl = ctk.CTkLabel(
                     self.table_frame,
-                    text=str(value)
+                    text=str(
+                        value
+                        if value is not None
+                        else ""
+                    )
                 )
 
                 lbl.grid(
@@ -257,24 +286,89 @@ class FishPage(ctk.CTkFrame):
                     sticky="w"
                 )
 
+            # ------------------------------
+            # Düzenle
+            # ------------------------------
+
+            fish_id = fish["id"]
+
             action = ctk.CTkButton(
                 self.table_frame,
                 text="Düzenle",
                 width=80,
-                height=28
+                height=28,
+                command=lambda fid=fish_id:
+                    self.edit_fish(fid)
             )
 
             action.grid(
                 row=row,
                 column=7,
-                padx=10
+                padx=10,
+                pady=8
             )
-                # ======================================
-    # Listeyi Yenile
-    # ======================================
+
+    # ==================================================
+    # BALIK DÜZENLE
+    # ==================================================
+
+    def edit_fish(self, fish_id):
+
+        print(
+            "Düzenlenecek Balık ID:",
+            fish_id
+        )
+
+        try:
+
+            # Veritabanından gerçek balığı getir
+
+            fish = self.fish_service.get_fish(
+                fish_id
+            )
+
+            # Balık bulunamadı
+
+            if not fish:
+
+                messagebox.showerror(
+                    "Hata",
+                    "Balık bulunamadı."
+                )
+
+                return
+
+            print(
+                "Düzenlenecek kayıt:",
+                dict(fish)
+            )
+
+            # ==================================================
+            # ÖNEMLİ:
+            # fish nesnesini FishForm'a gönderiyoruz.
+            # Böylece form mevcut bilgileri doldurabilir.
+            # ==================================================
+
+            FishForm(
+                self,
+                fish=fish
+            )
+
+        except Exception as e:
+
+            messagebox.showerror(
+                "Düzenleme Hatası",
+                str(e)
+            )
+
+    # ==================================================
+    # LİSTEYİ YENİLE
+    # ==================================================
 
     def refresh(self):
-        """
-        Balık listesini yeniden yükler.
-        """
+
+        print(
+            "Balık listesi yenileniyor..."
+        )
+
         self.load_fish()

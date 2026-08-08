@@ -1,6 +1,7 @@
 """
 BettaHub
-Yeni Balık Formu
+Balık Formu
+Yeni Balık + Balık Düzenleme + Balık Silme
 """
 
 import customtkinter as ctk
@@ -26,11 +27,19 @@ class FishForm(ctk.CTkToplevel):
     def __init__(self, parent, fish=None):
         super().__init__(parent)
 
+        self.parent_page = parent
+        self.fish_service = FishService()
+        self.fish = fish
+
         # ==========================
         # Pencere
         # ==========================
 
-        self.title("🐠 Yeni Balık")
+        if self.fish:
+            self.title("🐠 Balık Düzenle")
+        else:
+            self.title("🐠 Yeni Balık")
+
         self.geometry("1000x720")
         self.resizable(False, False)
 
@@ -38,20 +47,14 @@ class FishForm(ctk.CTkToplevel):
         self.focus()
 
         # ==========================
-        # Servis
-        # ==========================
-
-        self.fish_service = FishService()
-                # Düzenleme modu
-        self.fish = fish
-
-        # ==========================
         # Başlık
         # ==========================
 
+        title_text = "🐠 Balık Düzenle" if self.fish else "🐠 Yeni Balık"
+
         title = ctk.CTkLabel(
             self,
-            text="🐠 Yeni Balık",
+            text=title_text,
             font=("Bahnschrift SemiBold", 28)
         )
 
@@ -78,11 +81,13 @@ class FishForm(ctk.CTkToplevel):
         breeding_page = self.tabs.add("Üretim")
         photos_page = self.tabs.add("Fotoğraflar")
         notes_page = self.tabs.add("Notlar")
-                # ==========================
+
+        # ==========================
         # Genel
         # ==========================
 
         self.general_tab = GeneralTab(general_page)
+
         self.general_tab.pack(
             fill="both",
             expand=True
@@ -93,6 +98,7 @@ class FishForm(ctk.CTkToplevel):
         # ==========================
 
         self.genetics_tab = GeneticsTab(genetics_page)
+
         self.genetics_tab.pack(
             fill="both",
             expand=True
@@ -103,6 +109,7 @@ class FishForm(ctk.CTkToplevel):
         # ==========================
 
         self.health_tab = HealthTab(health_page)
+
         self.health_tab.pack(
             fill="both",
             expand=True
@@ -113,6 +120,7 @@ class FishForm(ctk.CTkToplevel):
         # ==========================
 
         self.breeding_tab = BreedingTab(breeding_page)
+
         self.breeding_tab.pack(
             fill="both",
             expand=True
@@ -123,6 +131,7 @@ class FishForm(ctk.CTkToplevel):
         # ==========================
 
         self.photos_tab = PhotosTab(photos_page)
+
         self.photos_tab.pack(
             fill="both",
             expand=True
@@ -133,13 +142,18 @@ class FishForm(ctk.CTkToplevel):
         # ==========================
 
         self.notes_tab = NotesTab(notes_page)
-                # Eğer düzenleme modundaysak
-        if self.fish:
-            self.load_fish_data()
+
         self.notes_tab.pack(
             fill="both",
             expand=True
         )
+
+        # ==========================
+        # Düzenleme verisini yükle
+        # ==========================
+
+        if self.fish:
+            self.load_fish_data()
 
         # ==========================
         # Alt Butonlar
@@ -156,6 +170,24 @@ class FishForm(ctk.CTkToplevel):
             pady=(0, 20)
         )
 
+        # Sil butonu sadece düzenleme modunda
+        if self.fish:
+
+            self.delete_button = ctk.CTkButton(
+                bottom,
+                text="🗑 Balığı Sil",
+                width=120,
+                height=38,
+                fg_color="#B3261E",
+                hover_color="#8C1D18",
+                command=self.delete_fish
+            )
+
+            self.delete_button.pack(
+                side="left",
+                padx=5
+            )
+
         self.cancel_button = SecondaryButton(
             bottom,
             text="İptal",
@@ -169,7 +201,7 @@ class FishForm(ctk.CTkToplevel):
 
         self.save_button = PrimaryButton(
             bottom,
-            text="Kaydet",
+            text="Değişiklikleri Kaydet" if self.fish else "Kaydet",
             command=self.save
         )
 
@@ -177,36 +209,166 @@ class FishForm(ctk.CTkToplevel):
             side="right",
             padx=5
         )
-          # =====================================
-          # Kaydet
-          # =====================================
 
-    def save(self):
+    # ======================================
+    # Mevcut Balık Bilgilerini Forma Yükle
+    # ======================================
+
+    def load_fish_data(self):
 
         try:
-            data = self.general_tab.get_data()
 
-            # Basit doğrulama
-            if not data.get("name", "").strip():
-                messagebox.showwarning(
-                    "Uyarı",
-                    "Lütfen balık adını giriniz."
-                )
-                return
+            fish = self.fish
 
-            fish_code = self.fish_service.add_fish(data)
+            data = {
+                "name": fish["name"] or "",
+                "species": fish["species"] or "",
+                "variety": fish["variety"] or "",
+                "gender": fish["gender"] or "",
+                "color": fish["color"] or "",
+                "birth_date": fish["birth_date"] or "",
+                "aquarium": fish["aquarium"] or "",
+                "section": fish["section"] or ""
+            }
 
-            messagebox.showinfo(
-                "Başarılı",
-                f"Balık başarıyla kaydedildi.\n\nKod: {fish_code}"
-            )
-            if hasattr(self.master, "refresh"):
-             self.master.refresh()
-            self.destroy()
+            # Balık adı
+            self.general_tab.fish_name.delete(0, "end")
+            self.general_tab.fish_name.insert(0, data["name"])
 
+            # Varyete
+            self.general_tab.variety.set(data["variety"])
+
+            # Renk
+            self.general_tab.color.delete(0, "end")
+            self.general_tab.color.insert(0, data["color"])
+
+            # Akvaryum
+            self.general_tab.aquarium.set(data["aquarium"])
+
+            # Tür
+            self.general_tab.fish_type.set(data["species"])
+
+            # Cinsiyet
+            self.general_tab.gender.set(data["gender"])
+
+            # Doğum tarihi
+            self.general_tab.birth_date.delete(0, "end")
+            self.general_tab.birth_date.insert(0, data["birth_date"])
+
+            # Bölme
+            self.general_tab.section.set(data["section"])
 
         except Exception as e:
 
             messagebox.showerror(
                 "Hata",
-                str(e))
+                f"Balık bilgileri forma yüklenemedi.\n\n{e}"
+            )
+
+    # ======================================
+    # Kaydet / Güncelle
+    # ======================================
+
+    def save(self):
+
+        try:
+
+            data = self.general_tab.get_data()
+
+            # ------------------------------
+            # Basit doğrulama
+            # ------------------------------
+
+            if not data.get("name", "").strip():
+
+                messagebox.showwarning(
+                    "Uyarı",
+                    "Lütfen balık adını giriniz."
+                )
+
+                return
+
+            # ==============================
+            # Düzenleme
+            # ==============================
+
+            if self.fish:
+
+                self.fish_service.update_fish(
+                    self.fish["id"],
+                    data
+                )
+
+                messagebox.showinfo(
+                    "Başarılı",
+                    "Balık bilgileri başarıyla güncellendi."
+                )
+
+            # ==============================
+            # Yeni kayıt
+            # ==============================
+
+            else:
+
+                fish_code = self.fish_service.add_fish(data)
+
+                messagebox.showinfo(
+                    "Başarılı",
+                    f"Balık başarıyla kaydedildi.\n\nKod: {fish_code}"
+                )
+
+            # Listeyi yenile
+            if hasattr(self.parent_page, "refresh"):
+                self.parent_page.refresh()
+
+            self.destroy()
+
+        except Exception as e:
+
+            messagebox.showerror(
+                "Hata",
+                str(e)
+            )
+
+    # ======================================
+    # Balık Sil
+    # ======================================
+
+    def delete_fish(self):
+
+        if not self.fish:
+            return
+
+        fish_name = self.fish["name"] or self.fish["fish_code"]
+
+        answer = messagebox.askyesno(
+            "Balığı Sil",
+            f'"{fish_name}" adlı balığı silmek istediğinize emin misiniz?\n\n'
+            "Bu işlem geri alınamaz."
+        )
+
+        if not answer:
+            return
+
+        try:
+
+            self.fish_service.delete_fish(
+                self.fish["id"]
+            )
+
+            messagebox.showinfo(
+                "Başarılı",
+                "Balık başarıyla silindi."
+            )
+
+            if hasattr(self.parent_page, "refresh"):
+                self.parent_page.refresh()
+
+            self.destroy()
+
+        except Exception as e:
+
+            messagebox.showerror(
+                "Hata",
+                f"Balık silinemedi.\n\n{e}"
+            )
